@@ -10,6 +10,9 @@ from iharm.inference.predictor import Predictor
 from iharm.inference.utils import load_model
 from iharm.mconfigs import ALL_MCONFIGS
 
+# 加载数据集
+# model的初始化 以及加载预训练参数
+# gpu的ID，其实少量推理 cpu也完全可以
 parser = argparse.ArgumentParser()
 parser.add_argument('src', help='Source directory')
 parser.add_argument('model_type', help='model type')
@@ -24,6 +27,7 @@ model = load_model(args.model_type, args.weights, verbose=False)
 device = torch.device(args.gpu)
 use_attn = ALL_MCONFIGS[args.model_type]['params']['use_attn']
 normalization = ALL_MCONFIGS[args.model_type]['params']['input_normalization']
+# 封装成了 predictor的形式
 predictor = Predictor(model, device, use_attn=use_attn, mean=normalization['mean'], std=normalization['std'])
 
 # Get data
@@ -40,6 +44,7 @@ for img in tqdm(imgs):
     mask_lr = cv2.resize(mask, (256, 256))
     
     # Inference
+    # 核心函数
     pred_lr, pred_img = predictor.predict(comp_lr, comp, mask_lr, mask)
 
     # Save Image
