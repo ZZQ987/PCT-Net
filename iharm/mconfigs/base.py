@@ -1,5 +1,6 @@
 from iharm.model.base import SSAMImageHarmonization, PCTNet
-                    
+
+# 所有的配置
 BMCONFIGS = {
 
 ########################
