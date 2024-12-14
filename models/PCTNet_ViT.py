@@ -17,6 +17,9 @@ from iharm.engine.PCTNet_trainer import PCT_Trainer
 from iharm.mconfigs import BMCONFIGS
 from iharm.utils.log import logger
 
+# 模型初始化
+# 训练代码
+
 def main(cfg):
     model, model_cfg, ccfg = init_model(cfg)
     train(model, cfg, model_cfg, ccfg, start_epoch=cfg.start_epoch)
