@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,6 +9,8 @@ from iharm.model.modeling.conv_autoencoder import ConvEncoder, DeconvDecoderUpsa
 from iharm.model.modeling.unet import UNetEncoder, UNetDecoderUpsample
 from iharm.model.modeling.vit_base import ViT_Harmonizer
 from iharm.model.pct_functions import PCT
+
+import cv2
 
 class PCTNet(nn.Module):
     
@@ -29,10 +32,12 @@ class PCTNet(nn.Module):
         self.dim = dim
         self.transform_type = transform_type
         self.affine = affine
+        # 色彩变换函数
         self.PCT = PCT(transform_type, dim, affine, color_space, input_normalization['mean'], input_normalization['std'], clamp=clamp)
         self.out_dim = self.PCT.get_out_dim()
 
         input_dim = self.out_dim
+        # 初始化 LR 分支的参数化网络
         self.backbone_type = backbone_type
         if backbone_type == 'idih':
             self.encoder = ConvEncoder(
@@ -42,6 +47,7 @@ class PCTNet(nn.Module):
             )
             self.decoder = DeconvDecoderUpsample(depth, self.encoder.blocks_channels, norm_layer, attend_from, image_fusion)
             input_dim = 32
+        # cnn-based 的 backbone
         elif backbone_type == 'ssam':
             print('depth', depth)
             self.encoder = UNetEncoder(
@@ -57,6 +63,7 @@ class PCTNet(nn.Module):
                 image_fusion=image_fusion
             )
             input_dim=32
+        # vit-based 的 backbone
         elif backbone_type == 'ViT':
             self.encoder = ViT_Harmonizer(output_nc=input_dim)
             self.decoder = lambda intermediates, img, mask: (intermediates, mask)
@@ -66,19 +73,31 @@ class PCTNet(nn.Module):
 
     def forward(self, image, image_fullres=None, mask=None, mask_fullres=None, backbone_features=None):
 
+        # self.use_attn 是针对cnn-based方法的
+        # 因为cnn-based方法是issam的backbone
+        # 支持使用attention map 作为修正后mask
+
         self.device = image.get_device()
 
         # Low resolution branch
         x = torch.cat((image, mask), dim=1)
-        
+
+        # backbone_features=None
         intermediates = self.encoder(x, backbone_features)
+        # decoder对于vit-based 是直接返回的
         latent, attention_map = self.decoder(intermediates, image, mask) # (N, 32, 256, 256), (N, 1, 256, 256)
+        # 通过一个卷积层 来得到输出的参数图
         params = self.get_params(latent)
 
+        # 根据参数图进行色彩变换
+        # 此时得到的是低分辨率下的结果
         output_lowres = self.PCT(image, params)
 
         if self.use_attn:
             output_lowres = output_lowres * attention_map + image * (1-attention_map)
+            _attention_map = attention_map.reshape(256,256).numpy().astype(np.uint8)
+            cv2.imwrite('mask_attn.png',_attention_map)
+
         else:
             output_lowres = output_lowres * mask + image * (1 - mask)
 
@@ -103,9 +122,13 @@ class PCTNet(nn.Module):
         for id, fr_img, fr_mask in zip(idx, fr_imgs, fr_masks):
             H = fr_img.size(2)
             W = fr_img.size(3)
+            # 对参数图进行一个上采样操作
             params_fullres = F.interpolate(params[id], size=(H, W), mode='bicubic')
+            # 再次调用PCT 但是此时是在全分辨率进行色彩变换
             output_fullres = self.PCT(fr_img, params_fullres)
             if self.use_attn:
+                # 如果是issam （cnn-base）
+                # 此时使用attn-map作为修正后mask
                 attention_map_fullres = F.interpolate(attention_map[id], size=(H, W), mode='bicubic')
                 output_fullres = output_fullres * attention_map_fullres + fr_img * (1-attention_map_fullres)
             else:
@@ -120,4 +143,8 @@ class PCTNet(nn.Module):
             param_fr = param_fr[0]
         outputs['params_fullres'] = param_fr
             
-        return outputs 
+        return outputs
+        # 包括五部分
+        # 低分辨率下的结果 参数图
+        # 全分辨率下的结果 参数图
+        # attention map(cnn-based) 或者 mask (vit-based)
