@@ -1,6 +1,14 @@
 # PCT-Net
 
-这是数学建模大作业的代码仓库  
+**介绍**  
+
+这是我的数学建模大作业的代码仓库  
+为了证明我已运行并看懂了代码，我fork了原代码仓库，并添加了以下内容：  
+1. 一份说明文件  
+2. 所有原有的代码文件都运行并添加注释  
+3. 自行测试的结果（论文附录也添加了）  
+
+---
 
 This is the official repository of PCT-Net (CVPR2023) by [Rakuten Institute of Technology, Rakuten Group, Inc.](https://rit.rakuten.com/)
 - [Paper](https://openaccess.thecvf.com/content/CVPR2023/papers/Guerreiro_PCT-Net_Full_Resolution_Image_Harmonization_Using_Pixel-Wise_Color_Transformations_CVPR_2023_paper.pdf)
