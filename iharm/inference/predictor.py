@@ -7,9 +7,12 @@ class Predictor(object):
     def __init__(self, net, device, with_flip=False,
                  mean=(.485, .456, .406), std=(.229, .224, .225), hsv=False, use_attn=True):
         self.device = device
+        # 模型
         self.net = net.to(self.device)
         self.net.eval()
-        
+
+        # 一些预处理操作
+        # 主要是标准化
         mean = torch.tensor(mean, dtype=torch.float32)
         std = torch.tensor(std, dtype=torch.float32)
 
@@ -31,12 +34,14 @@ class Predictor(object):
     def predict(self, image, image_highres, mask, mask_highres, return_numpy=True):
 
         with torch.no_grad():
+            # 图像预处理
             for transform in self.transforms:
                 image, mask = transform.transform(image, mask)
             input_mask = mask
             for transform in self.transforms:
                 image_highres, mask_highres = transform.transform(image_highres, mask_highres)
-            
+
+            # 经过PCT-Net
             output = self.net(image.float(), image_highres.float(), input_mask.float(), mask_highres.float())
             predicted_image = output['images']
             output_fullres = output['images_fullres'].unsqueeze(0)
