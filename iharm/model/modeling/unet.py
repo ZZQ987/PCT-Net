@@ -147,6 +147,8 @@ class UNetDecoderUpsample(nn.Module):
         for block, skip_output in zip(self.up_blocks, encoder_outputs[1:]):
             output = block(output, skip_output, mask)
 
+        # 获取attention map
+        # 这是issam 的模型设计特点
         attention_map = torch.sigmoid(3.0 * self.conv_attention(output))
         # output = attention_map * input_image + (1.0 - attention_map) * self.to_rgb(output)
 
