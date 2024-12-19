@@ -6,8 +6,12 @@
 我fork了原代码仓库，并添加了以下内容：  
 1. 一份代码内容介绍文件（代码文件介绍.md），来说明代码仓库整体架构  
 2. 运行测试代码并添加注释，注释内容主要集中在pct_net.py和pct_functions.py  
-3. 自行测试的结果（与论文附录C相同）  
+3. 自行测试的结果（与论文附录C相同）
 
+## 测试方法
+
+配置环境 —— 按照下面Testing的要求，准备图片，放入文件夹 —— 运行scripts/evaluate_folder.py，指定待处理图片文件夹位置，以及模型配置等  
+ 
 ---
 
 This is the official repository of PCT-Net (CVPR2023) by [Rakuten Institute of Technology, Rakuten Group, Inc.](https://rit.rakuten.com/)
