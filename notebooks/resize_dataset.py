@@ -3,6 +3,7 @@ import shutil
 from tqdm import tqdm
 from pathlib import Path
 
+# 如果有H或W超过了max_size，进行缩放，但是保证尺寸比例不变
 max_size = 1024
 input_dataset_path = '../IHD/HAdobe5k'
 output_path = f'{input_dataset_path}_resized{max_size}'
