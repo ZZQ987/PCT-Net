@@ -8,6 +8,8 @@
 2. 运行测试代码并添加注释，注释内容主要集中在pct_net.py和pct_functions.py  
 3. 自行测试的结果（附录图，与论文附录C相同；examples文件夹内容）
 
+**勘误：**原代码实现中，/iharm/model/losses.py中的Gram() 函数实现有问题。已修正
+
 ## 测试方法
 
 1. 配置环境  
