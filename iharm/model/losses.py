@@ -232,6 +232,9 @@ class SCS_CR_loss(Loss):
 
         out = []
         for f1, f2 in zip(mat1, mat2):
-            out.append( torch.matmul(f1.view(512, -1).T, f2.view(512, -1)) )
+            # 这里写错了
+            # out.append( torch.matmul(f1.view(512, -1).T, f2.view(512, -1)) )
+            # 应该是
+            # out.append( torch.matmul(f1.view(512, -1), f2.view(512, -1).T) )
 
         return torch.stack(out)
